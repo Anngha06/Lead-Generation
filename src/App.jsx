@@ -10,12 +10,14 @@ import { sendToSheet } from './lib/api.js'
 
 const LS_SCHEMA = 'aceint_schema_v4'
 const LS_ROLE = 'aceint_role'
+const LS_USER = 'aceint_user'
 const LS_THEME = 'theme'
 
 function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') }
 
 export default function App(){
   const [role, setRole] = useState(localStorage.getItem(LS_ROLE) || '')
+  const [user, setUser] = useState(localStorage.getItem(LS_USER) || '')
   const [tabs, setTabs] = useState(loadSchema())
   const [current, setCurrent] = useState(tabs[0]?.id || '')
   const [rows, setRows] = useState([])
@@ -36,12 +38,17 @@ export default function App(){
     } catch { setRows([]) }
   }
 
-  function onLogin(pwd){
-    const r = pwd==='2001' ? 'admin' : (pwd==='1111' ? 'intern' : '')
+  function onLogin({ name, pwd }){
+    const p = String(pwd).trim()
+    const r = p==='2001' ? 'admin' : (p==='2025' ? 'intern' : '')
     if(!r) return
     localStorage.setItem(LS_ROLE, r); setRole(r)
+    localStorage.setItem(LS_USER, name||''); setUser(name||'')
   }
-  function logout(){ localStorage.removeItem(LS_ROLE); setRole('') }
+  function logout(){
+    localStorage.removeItem(LS_ROLE); setRole('')
+    localStorage.removeItem(LS_USER); setUser('')
+  }
 
   async function onCreateTab({ name, group, fields }) {
     const id = slugify(name)
@@ -59,12 +66,7 @@ export default function App(){
       return { key, label, type }
     })
 
-    // create the Google Sheet tab using the same slug as the tab id
-    await sendToSheet({
-      action: 'create_tab',
-      sheet_name: id,
-      fields: fs.map(f => f.key)
-    })
+    await sendToSheet({ action:'create_tab', sheet_name:id, fields: fs.map(f=>f.key) })
 
     const next = [...tabs, { id, title: name, group, fields: fs }]
     localStorage.setItem(LS_SCHEMA, JSON.stringify({ tabs: next }))
@@ -74,7 +76,7 @@ export default function App(){
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-[260px_1fr]">
+    <div className="min-h-screen grid grid-cols-[260px_1fr] relative">
       {!role && <LoginModal onLogin={onLogin} />}
       <Sidebar tabs={tabs} current={current} setCurrent={setCurrent} onNewTab={()=> role==='admin' && setShowAdd(true)} role={role} />
       <main className="p-4 space-y-3">
@@ -88,21 +90,19 @@ export default function App(){
           </div>
           <div className="flex items-center gap-2">
             <span className="pill">Role: {role || '—'}</span>
+            {user && <span className="pill">User: {user}</span>}
             {role && <button className="btn btn-ghost" onClick={logout}>Logout</button>}
             <ThemeToggle />
           </div>
         </header>
-
         <div className="text-sm text-body/70">
           {tabs.find(t=>t.id===current)?.group} / {tabs.find(t=>t.id===current)?.title}
         </div>
-
         {current && (<>
           <TabForm tab={tabs.find(t=>t.id===current)} role={role} onAdded={refresh} />
           <DataTable tab={tabs.find(t=>t.id===current)} rows={rows} role={role} reload={refresh} />
         </>)}
       </main>
-
       {showAdd && <AddTabModal onClose={()=>setShowAdd(false)} onCreate={onCreateTab} />}
     </div>
   )
