@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface: 246 247 251;
+  --card: 255 255 255;
+  --body: 19 21 26;
+  --muted: 240 242 247;
+  --border: 228 231 238;
+ 
+
+}
+:root.dark, [data-theme="dark"] {
+  --surface: 11 12 16;
+  --card: 18 19 24;
+  --body: 232 234 237;
+  --muted: 27 29 36;
+  --border: 42 45 54;
+ 
+
+}
+
+html, body, #root { height: 100%; }/* overlay backdrop */
+.overlay { @apply fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50; }
+
+button:focus { outline: 2px solid #215cff; outline-offset: 2px; }
+input, textarea, select { @apply bg-muted border border-border text-body rounded-xl px-3 py-2; }
+table { @apply w-full border-collapse; }
+th, td { @apply border-b border-border text-left whitespace-nowrap px-3 py-2; }
+th { @apply bg-muted uppercase text-xs tracking-wide text-body/70; }
+.btn { @apply px-3 py-2 rounded-xl border border-border bg-muted text-body font-semibold; }
+.btn-primary { @apply bg-brand text-white border-transparent; }
+.btn-danger { @apply bg-danger text-white border-transparent; }
+.btn-ghost { @apply bg-transparent border-transparent text-brand; }
+.pill { @apply px-2.5 py-1 rounded-full bg-muted text-sm; }
+.card { @apply bg-card border border-border rounded-2xl p-4 shadow-soft; }
+.sidebar-btn { @apply w-full text-left px-3 py-2 rounded-xl border border-border bg-muted; }
+.sidebar-btn-active { @apply ring-2 ring-brand; }
+.overlay { @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50; }
+.modal { @apply w-[min(560px,92vw)] card; }
